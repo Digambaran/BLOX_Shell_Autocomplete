@@ -16,26 +16,47 @@
 # TODO
 # Check for live bloxes and remove them from start argument list
 
+# TODO
+# suggestions for stop subcommand can indicate if the blox is live or not,
+# or should only list live bloxes
+
 # INFO
 # COMPREPLY=($(compgen -W "${_opts_list_for_type[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
 # The -- in the middle of above line is to avoid compgen mistaking our option as its option
 # Reference https://stackoverflow.com/questions/67851740/how-to-use-bash-compgen-with-my-own-script-options
 
-# sub_cmds=(
-# "init" "push" "pull" "publish" "mark" "login" "logout"
-# "connect" "ls" "log" "flush" "sync" "create" "start" "exec" "stop"
-#  )
+# INFO
+# :; is a noop
 
+# Array to hold subcommands
 sub_cmds=()
 
+# Each subcommand is added to array(in Alphabetical order),
+# and in next line the command handler function is defined
+ 
 sub_cmds+=( "add-categories" )
-_add-categories () {  echo "dummy" ; }
+_add-categories () { 
+    _opts_list=( "--help" "--all" )
+    COMPREPLY=($(compgen -W "${_opts_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
+ }
 
 sub_cmds+=( "add-tags" )
-_add-tags () {  echo "dummy" ; }
+_add-tags () {  
+    _opts_list=( "--help" "--all" )
+    COMPREPLY=($(compgen -W "${_opts_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
+ }
 
 sub_cmds+=( "connect" )
-_connect () {  echo "dummy" ; }
+_connect () {  
+    _opts_list=( "--help" "--force" )
+    # Add more services later to this list
+    _services_list=( "Github" ) 
+    if [ "$COMP_CWORD" = 2 ];then
+        COMPREPLY=($(compgen -W "${_services_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
+    else
+        COMPREPLY=($(compgen -W "${_opts_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
+    fi
+ }
 
 sub_cmds+=( "create" )
 _create () {
@@ -56,7 +77,7 @@ _exec () {
      _opts_list=( "--help" "--inside" )
     if [ "$COMP_CWORD" = 2 ];then
         COMPREPLY='"enter_command_here_inside_quotes"'
-    elif [ "${COMP_WORDS[3]}" = "--inside" ]; then
+    elif [ "${COMP_WORDS[3]}" = "--inside" ] || [ "${COMP_WORDS[3]}" = "-in" ]; then
         _read_and_set_bloxes
     else
         COMPREPLY=($(compgen -W "${_opts_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
@@ -64,46 +85,73 @@ _exec () {
 }
 
 sub_cmds+=( "flush" )
-_flush () {  echo "dummy" ; }
+_flush () {  
+    COMPREPLY="--help"
+ }
 
 sub_cmds+=( "init" )
-_init () {  echo "dummy" ; }
+_init () {
+    if [ "$COMP_CWORD" = 2 ];then
+        COMPREPLY='enter_name_of_appblox_here'
+    else
+        COMPREPLY="--help"
+    fi
+ }
 
 sub_cmds+=( "log" )
-_log () {  echo "dummy" ; }
+_log () { 
+    
+    if [ "$COMP_CWORD" = 2 ];then
+        _read_and_set_bloxes
+    else
+        COMPREPLY="--help"
+    fi
+}
 
 sub_cmds+=( "login" )
-_login () {  echo "dummy" ; }
+_login () { 
+    _opts_list=( "--no-localhost" "--help" )
+    COMPREPLY=($(compgen -W "${_opts_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
+ }
 
 sub_cmds+=( "logout" )
-_logout () {  echo "dummy" ; }
+_logout () {  COMPREPLY="--help"; }
 
 sub_cmds+=( "ls" )
-_ls () {  echo "dummy" ; }
+_ls () { COMPREPLY="--help"; }
 
 sub_cmds+=( "mark" )
-_mark () {  echo "dummy" ; }
+_mark () {  
+    _opts_list=( "--dependency" "--composibility" "--help" )
+
+    # TODO handle this case better
+    COMPREPLY=($(compgen -W "${_opts_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
+
+ }
 
 sub_cmds+=( "publish" )
-_publish () {  echo "dummy" ; }
+_publish () {
+     _read_and_set_bloxes
+}
 
 sub_cmds+=( "pull" )
-_pull () {  echo "dummy" ; }
+_pull () {
+    COMPREPLY="enter_name_of_blox_here"
+}
 
 sub_cmds+=( "pull_appblox" )
-_pull_appblox () {  echo "dummy" ; }
+_pull_appblox () {  
+    COMPREPLY="enter_name_of_appblox_here"
+ }
 
 sub_cmds+=( "push" )
 _push () {
-    # echo "${COMP_WORDS[*]}"
-    # echo $COMP_CWORD
-    # echo $PWD/.appblox.live.json
+
     _opts_list=( "--force" "--help" "--message" )
-    # _opts_list_s=( "-f" "-h" "-m" )
 
     if [ "$COMP_CWORD" = 2 ];then
         _read_and_set_bloxes
-    elif [ "${COMP_WORDS[-2]}" = "--message" ]; then
+    elif [ "${COMP_WORDS[-2]}" = "--message" ] || [ "${COMP_WORDS[-2]}" = "-m" ]; then
         COMPREPLY='"enter_message_here_inside_quotes"'
     else
         COMPREPLY=($(compgen -W "${_opts_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
@@ -111,7 +159,9 @@ _push () {
 }
 
 sub_cmds+=( "push-config" )
-_push-config () {  echo "dummy" ; }
+_push-config () {  
+    COMPREPLY="--help"
+ }
 
 sub_cmds+=( "start" )
 _start () {
@@ -124,16 +174,19 @@ _start () {
 }
 
 sub_cmds+=( "stop" )
-_stop () {  echo "dummy" ; }
+_stop () { 
+    if [ "$COMP_CWORD" = 2 ];then
+        _read_and_set_bloxes
+    else
+        COMPREPLY="--help"
+    fi
+ }
 
 sub_cmds+=( "sync" )
-_sync () {  echo "dummy" ; }
+_sync () {  COMPREPLY="--help" ; }
 
 
-
-
-
-
+# Calls the correct handler for the entered subcommand
 _handle_sub_cmd() {
 
     case "${COMP_WORDS[1]}" in

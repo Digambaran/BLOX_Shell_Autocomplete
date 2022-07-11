@@ -50,7 +50,7 @@ sub_cmds+=( "connect" )
 _connect () {  
     _opts_list=( "--help" "--force" )
     # Add more services later to this list
-    _services_list=( "Github" ) 
+    _services_list=( "github" ) 
     if [ "$COMP_CWORD" = 2 ];then
         COMPREPLY=($(compgen -W "${_services_list[*]}" -- "${COMP_WORDS[COMP_CWORD]}"))
     else
